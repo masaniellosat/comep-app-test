@@ -1,169 +1,159 @@
+<!-- INIZIO FILE dettagli-progetto.html -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dettagli Progetto</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
       padding: 20px;
-    }
-    header {
       text-align: center;
-      margin-bottom: 20px;
     }
     h1 {
-      color: #fff;
+      font-size: 28px;
+      margin-bottom: 30px;
     }
     .spesa {
-      background-color: #ffffff;
-      margin: 10px auto;
-      padding: 15px;
+      background-color: rgba(255,255,255,0.1);
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 500px;
+      padding: 15px;
+      margin: 20px auto;
+      max-width: 600px;
       text-align: left;
-      position: relative;
-    }
-    .spesa h3 {
-      margin-top: 0;
     }
     .spesa p {
-      margin: 5px 0;
+      margin: 6px 0;
     }
+    .spesa img {
+      display: block;
+      margin: 10px auto;
+      max-width: 200px;
+      border-radius: 8px;
+      border: 1px solid white;
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px auto;
+      display: block;
+      width: 240px;
+    }
+    .btn-azzurro { background-color: #007bff; color: white; }
+    .btn-azzurro:hover { background-color: #0056b3; }
+    .btn-rosso { background-color: #cc0000; color: white; }
+    .btn-rosso:hover { background-color: #990000; }
     .btn-elimina {
-      position: absolute;
-      top: 10px;
-      right: 10px;
       background-color: #cc0000;
       color: white;
       border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 6px 12px;
       font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
     }
     .btn-elimina:hover {
       background-color: #990000;
     }
-    .btn-azione {
-      display: block;
-      margin: 20px auto;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .btn-azione:hover {
-      background-color: #0056b3;
-    }
-    .btn-rosso {
-      background-color: #cc0000;
-    }
-    .btn-rosso:hover {
-      background-color: #990000;
-    }
     .no-spese {
-      text-align: center;
+      font-style: italic;
+      color: #cccccc;
       margin-top: 40px;
-      color: #777;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Spese del Progetto</h1>
-  </header>
+  <h1>Spese del Progetto</h1>
+  <div id="contenuto"></div>
 
-  <main id="contenuto">
-    <p class="no-spese" id="nessuna-spesa">Nessuna spesa trovata per questo progetto.</p>
-  </main>
-
-  <button class="btn-azione" onclick="vaiAggiungiSpesa()">➕ Inserisci Nuova Spesa</button>
-  <button class="btn-azione btn-rosso" onclick="window.location.href='homepage.html'">🔙 Torna alla Homepage</button>
+  <button class="btn btn-azzurro" onclick="vaiAggiungiSpesa()">➕ Inserisci Nuova Spesa</button>
+  <button class="btn btn-rosso" onclick="window.location.href='homepage.html'">🔙 Torna alla Homepage</button>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-    const supabaseUrl = 'https://orrnlfoqwivdlykajikp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
 
     const params = new URLSearchParams(window.location.search);
     const idProgetto = params.get("id");
     const nickname = localStorage.getItem("nickname");
     const contenuto = document.getElementById("contenuto");
-    const messaggioVuoto = document.getElementById("nessuna-spesa");
 
     async function caricaSpese() {
-      contenuto.innerHTML = "";
-      contenuto.appendChild(messaggioVuoto);
+      contenuto.innerHTML = '';
 
       const { data: spese, error } = await supabase
         .from("spese")
         .select("*")
-        .eq("progettoId", idProgetto)
-        .eq("nickname", nickname);
+        .eq("progetto", idProgetto)
+        .eq("nickname", nickname)
+        .order("data", { ascending: true });
 
-      if (error) {
-        console.error("Errore nel caricamento:", error);
-        alert("Errore nel caricamento delle spese.");
+      if (error || !spese || spese.length === 0) {
+        contenuto.innerHTML = `<p class="no-spese">Nessuna spesa trovata per questo progetto.</p>`;
         return;
       }
 
-      if (!spese || spese.length === 0) {
-        messaggioVuoto.style.display = "block";
-        return;
-      }
-
-      messaggioVuoto.style.display = "none";
-
-      spese.forEach((spesa, index) => {
+      spese.forEach(spesa => {
         const div = document.createElement("div");
         div.className = "spesa";
 
         div.innerHTML = `
-          <button class="btn-elimina" onclick="eliminaSpesa('${spesa.id}')">🗑️</button>
-          <h3>Spesa ${index + 1}</h3>
-          <p><strong>Categoria:</strong> ${spesa.categoria || "N/A"}</p>
-          <p><strong>Importo:</strong> €${parseFloat(spesa.importo || 0).toFixed(2)}</p>
-          <p><strong>Motivazione:</strong> ${spesa.motivazione || "N/A"}</p>
-          <p><strong>Scontrino smarrito:</strong> ${spesa.scontrinoSmarrito ? "Sì" : "No"}</p>
-          <p><strong>Foto presente:</strong> ${spesa.fotoDataUrl ? "Sì" : "No"}</p>
+          <p><strong>📅 Data:</strong> ${spesa.data}</p>
+          <p><strong>💰 Importo:</strong> € ${parseFloat(spesa.importo).toFixed(2)}</p>
+          <p><strong>🛒 Categoria:</strong> ${spesa.categoria}</p>
+          <p><strong>📝 Motivazione:</strong> ${spesa.motivazione || 'N/A'}</p>
+          <p><strong>📄 Scontrino smarrito:</strong> ${spesa.scontrinosmarrito ? 'Sì' : 'No'}</p>
         `;
+
+        if (spesa.fotodataurl) {
+          div.innerHTML += `<img src="${spesa.fotodataurl}" alt="Foto scontrino" />`;
+        }
+
+        const btnElimina = document.createElement("button");
+        btnElimina.className = "btn-elimina";
+        btnElimina.innerHTML = "🗑️ Elimina Spesa";
+        btnElimina.onclick = () => eliminaSpesa(spesa.id);
+
+        div.appendChild(btnElimina);
         contenuto.appendChild(div);
       });
     }
+        async function eliminaSpesa(idSpesa) {
+          if (!confirm("Sei sicuro di voler eliminare questa spesa?")) return;
 
-    window.eliminaSpesa = async function(idSpesa) {
-      if (!confirm("Sei sicuro di voler eliminare questa spesa?")) return;
+          const { error } = await supabase
+            .from("spese")
+            .delete()
+            .eq("id", idSpesa)
+            .eq("nickname", nickname);
 
-      const { error } = await supabase
-        .from("spese")
-        .delete()
-        .eq("id", idSpesa);
+          if (error) {
+            alert("❌ Errore durante l'eliminazione della spesa.");
+            console.error(error);
+            return;
+          }
 
-      if (error) {
-        console.error("Errore nell'eliminazione:", error);
-        alert("Errore durante l'eliminazione della spesa.");
-        return;
-      }
+          alert("✅ Spesa eliminata con successo.");
+          caricaSpese();
+        }
 
-      caricaSpese();
-    };
+        window.vaiAggiungiSpesa = function () {
+          window.location.href = `inserisci-spesa.html?id=${idProgetto}`;
+        };
 
-    window.vaiAggiungiSpesa = function() {
-      window.location.href = `inserisci-spesa.html?id=${idProgetto}`;
-    };
-
-    caricaSpese();
+        caricaSpese();
   </script>
 </body>
 </html>
-
+<!-- FINE FILE dettagli-progetto.html -->
