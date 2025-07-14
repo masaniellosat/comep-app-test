@@ -92,17 +92,54 @@
   </footer>
 
   <script>
+    function vaiASezione(sezione) {
+      window.location.href = "/" + sezione + ".html";
+    }
+
+    function vaiALink(link) {
+      window.location.href = link;
+    }
+
+    function logout() {
+      localStorage.removeItem("nickname");
+      window.location.href = "/index.html";
+    }
+
     const nickname = localStorage.getItem("nickname");
+    const welcomeBox = document.getElementById("welcomeBox");
+
     if (!nickname) {
-      alert("Utente non autorizzato. Contatta l'amministratore.");
+      alert("Utente non autorizzato. Torna al login.");
       window.location.href = "/index.html";
     } else {
-      fetch(`https://xsmpddhjfcaekdzqwvsz.supabase.co/rest/v1/utenti_richieste`, {
+      fetch(`https://xsmpddhjfcaekdzqwvsz.supabase.co/rest/v1/utenti_richieste?nickname=eq.${nickname}`, {
         method: "GET",
         headers: {
           apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4",
           Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4"
         }
       })
+      .then(response => response.json())
+      .then(data => {
+        if (data.length > 0) {
+          const utente = data[0];
+          const nomeCompleto = `${utente.nome?.toUpperCase() || ""} ${utente.cognome?.toUpperCase() || ""}`;
+          welcomeBox.textContent = `Benvenuto ${nomeCompleto}`;
 
-    
+          if (utente.ruolo === "admin") {
+            document.getElementById("btnMonitorSpazio").style.display = "block";
+          }
+        } else {
+          welcomeBox.textContent = "Errore: utente non trovato.";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        welcomeBox.textContent = "Errore durante il caricamento.";
+      });
+    }
+  </script>
+</body>
+</html>
+<!-- FINE FILE homepage.html -->
+
