@@ -4,10 +4,11 @@ document.getElementById("formRegistrazione").addEventListener("submit", async fu
   const nome = document.getElementById("nome").value.trim();
   const cognome = document.getElementById("cognome").value.trim();
   const email = document.getElementById("email").value.trim();
-  const nickname = document.getElementById("nickname").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const nickname = document.getElementById("nickname").value.trim().toLowerCase();
   const errore = document.getElementById("errore");
 
-  if (!nome || !cognome || !email || !nickname) {
+  if (!nome || !cognome || !email || !password || !nickname) {
     errore.textContent = "Tutti i campi sono obbligatori.";
     return;
   }
@@ -17,13 +18,19 @@ document.getElementById("formRegistrazione").addEventListener("submit", async fu
     return;
   }
 
+  if (password.length < 6) {
+    errore.textContent = "La password deve contenere almeno 6 caratteri.";
+    return;
+  }
+
   const data = {
     nome,
     cognome,
     email,
+    password,
     nickname,
     approvato: false,
-    ruolo: "utente"
+    ruolo: "utente" // nuovo campo ruolo
   };
 
   try {
