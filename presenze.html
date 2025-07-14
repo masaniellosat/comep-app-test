@@ -1,3 +1,4 @@
+<!-- INIZIO FILE presenze.html -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -110,7 +111,7 @@
       <option value="Esterno">Esterno</option>
       <option value="Trasferta">Trasferta</option>
     </select>
-    <select id="campoRientro">
+    <select id="campoRientro" onchange="gestisciSceltaPresenza()">
       <option value="">--</option>
       <option value="Rientro">Rientro</option>
     </select>
@@ -119,88 +120,209 @@
   <div id="campoDestinazione">
     <input type="text" id="destinazione" placeholder="Codice Missione" />
   </div>
+
+  <div class="opzioni-comep" id="opzioniComep">
+    <label><input type="checkbox" id="badgeSpunta" /> Ho marcato con badge</label>
+    <input type="text" id="noteComep" placeholder="Note opzionali..." />
+  </div>
+
+  <div class="opzioni-esterno" id="opzioniEsterno">
+    <div class="campi-esterno">
+      <input type="text" id="luogoEsterno" placeholder="Luogo di lavoro" required />
+      <input type="time" id="orarioInizio" required />
+      <input type="time" id="orarioFine" required />
+    </div>
+  </div>
+
+  <div class="opzioni-trasferta" id="opzioniTrasferta">
+    <div class="radio-group">
+      <label><input type="radio" name="tipoTrasferta" value="Offshore" onchange="mostraOnshore(false)"> Offshore</label>
+      <label><input type="radio" name="tipoTrasferta" value="Onshore" onchange="mostraOnshore(true)"> Onshore</label>
+    </div>
+
+    <div class="zona-offshore" id="zonaOffshore">
+      <div class="radio-group">
+        <label><input type="radio" name="zonaOffshore" value="Italia"> Italia</label>
+        <label><input type="radio" name="zonaOffshore" value="Estero"> Estero</label>
+      </div>
+    </div>
+
+    <div class="zona-onshore" id="zonaOnshore">
+      <div class="radio-group">
+        <label><input type="radio" name="zonaOnshore" value="Italia" onchange="mostraAlloggio()"> Italia</label>
+        <label><input type="radio" name="zonaOnshore" value="Estero" onchange="mostraAlloggio()"> Estero</label>
+      </div>
+    </div>
+
+    <div class="alloggio-onshore" id="alloggioOnshore">
+      <div class="radio-group">
+        <label><input type="radio" name="alloggio" value="Hotel" onchange="mostraVitto()"> Hotel</label>
+        <label><input type="radio" name="alloggio" value="Appartamento" onchange="nascondiVitto()"> Appartamento</label>
+      </div>
+    </div>
+
+    <div id="vittoHotel">
+      <div class="radio-group">
+        <label><input type="radio" name="vitto" value="No Vitto"> NO VITTO</label>
+        <label><input type="radio" name="vitto" value="1/2 Pensione"> 1/2 PENSIONE</label>
+        <label><input type="radio" name="vitto" value="Pensione Completa"> PENSIONE COMPLETA</label>
+      </div>
+    </div>
+  </div>
+
   <div class="btn-container">
     <button class="btn" onclick="confermaPresenza()">✅ Conferma Presenza</button>
     <button class="btn btn-blu" onclick="location.href='log-presenze.html'">📋 Log Presenze</button>
     <button class="btn btn-rosso" onclick="location.href='homepage.html'">🔙 Torna alla Homepage</button>
   </div>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabase = createClient(
+  'https://xsmpddhjfcaekdzqwvsz.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+);
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase = createClient(
-      'https://xsmpddhjfcaekdzqwvsz.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4'
-    );
+window.confermaPresenza = async function () {
+  const giorno = document.getElementById("giorno").value;
+  const mese = document.getElementById("mese").value;
+  const anno = document.getElementById("anno").value;
+  const tipoPresenza = document.getElementById("tipoPresenza").value;
+  const rientro = document.getElementById("campoRientro").value;
+  const nickname = localStorage.getItem("nickname") || "Anonimo";
+  const data = `${anno}-${mese}-${giorno}`;
 
-    window.confermaPresenza = async function () {
-      const giorno = document.getElementById("giorno").value;
-      const mese = document.getElementById("mese").value;
-      const anno = document.getElementById("anno").value;
-      const tipoPresenza = document.getElementById("tipoPresenza").value;
-      const rientro = document.getElementById("campoRientro").value;
-      const nickname = localStorage.getItem("nickname") || "Anonimo";
-      const data = `${anno}-${mese}-${giorno}`;
+  if (!tipoPresenza) return alert("Seleziona il tipo di presenza.");
 
-      if (!tipoPresenza) return alert("Seleziona il tipo di presenza.");
+  const { data: esistenti } = await supabase
+    .from("presenze")
+    .select("*")
+    .eq("data", data)
+    .eq("nickname", nickname);
 
-      const presenza = { data, tipo: tipoPresenza, nickname, rientro };
+  if (esistenti.length > 0) {
+    return alert(`Hai già registrato una presenza per il ${data}.`);
+  }
 
-      if (tipoPresenza === "Trasferta" && rientro === "") {
-        document.getElementById("opzioniTrasferta").style.display = "flex";
-        document.getElementById("campoDestinazione").style.display = "flex";
-      } else {
-        document.getElementById("opzioniTrasferta").style.display = "none";
-        document.getElementById("campoDestinazione").style.display = "none";
+  const presenza = { data, tipo: tipoPresenza, nickname, rientro };
+
+  if (tipoPresenza === "Comep") {
+    presenza.badge = document.getElementById("badgeSpunta").checked;
+    presenza.note = document.getElementById("noteComep").value.trim();
+  }
+
+  if (tipoPresenza === "Esterno") {
+    presenza.luogo = document.getElementById("luogoEsterno").value.trim();
+    presenza.orarioinizio = document.getElementById("orarioInizio").value;
+    presenza.orariofine = document.getElementById("orarioFine").value;
+  }
+
+  if (tipoPresenza === "Trasferta") {
+    presenza.codicemissione = document.getElementById("destinazione").value.trim();
+    if (rientro === "Rientro") {
+      // Nessun campo aggiuntivo
+    } else {
+      const tipo = document.querySelector('input[name="tipoTrasferta"]:checked');
+      presenza.trasfertatipo = tipo?.value;
+
+      if (tipo?.value === "Offshore") {
+        const zona = document.querySelector('input[name="zonaOffshore"]:checked');
+        presenza.zona = zona?.value;
       }
 
-      const { error } = await supabase.from("presenze").insert([presenza]);
-      if (error) {
-        alert("Errore durante il salvataggio.");
-        console.error(error);
-        return;
+      if (tipo?.value === "Onshore") {
+        const zona = document.querySelector('input[name="zonaOnshore"]:checked');
+        const alloggio = document.querySelector('input[name="alloggio"]:checked');
+        presenza.zona = zona?.value;
+        presenza.alloggio = alloggio?.value;
+
+        if (alloggio?.value === "Hotel") {
+          const vitto = document.querySelector('input[name="vitto"]:checked');
+          presenza.vitto = vitto?.value;
+        }
       }
-
-      alert(`Presenza registrata per il ${data}.`);
-      window.location.href = "log-presenze.html";
-    };
-
-    window.gestisciSceltaPresenza = function () {
-      const tipo = document.getElementById("tipoPresenza").value;
-      const campoRientro = document.getElementById("campoRientro");
-
-      if (tipo === "Trasferta") {
-        campoRientro.style.display = "inline-block";
-      } else {
-        campoRientro.style.display = "none";
-      }
-
-      document.getElementById("opzioniTrasferta").style.display = (tipo === "Trasferta" && campoRientro.value === "") ? "flex" : "none";
-      document.getElementById("campoDestinazione").style.display = (tipo === "Trasferta" && campoRientro.value === "") ? "flex" : "none";
-    };
-
-    const giornoSelect = document.getElementById("giorno");
-    const meseSelect = document.getElementById("mese");
-    const annoSelect = document.getElementById("anno");
-
-    for (let d = 1; d <= 31; d++) {
-      giornoSelect.innerHTML += `<option value="${String(d).padStart(2, '0')}">${d}</option>`;
     }
+  }
 
-    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-    mesi.forEach((m, i) => {
-      meseSelect.innerHTML += `<option value="${String(i+1).padStart(2,'0')}">${m}</option>`;
-    });
+  const { error } = await supabase.from("presenze").insert([presenza]);
+  if (error) {
+    alert("Errore durante il salvataggio.");
+    console.error(error);
+    return;
+  }
 
-    const annoCorrente = new Date().getFullYear();
-    for (let y = annoCorrente - 5; y <= annoCorrente + 1; y++) {
-      annoSelect.innerHTML += `<option value="${y}">${y}</option>`;
-    }
+  alert(`Presenza registrata per il ${data}.`);
+  window.location.href = "log-presenze.html";
+};
 
-    const oggi = new Date();
-    giornoSelect.value = String(oggi.getDate()).padStart(2, '0');
-    meseSelect.value = String(oggi.getMonth() + 1).padStart(2, '0');
-    annoSelect.value = oggi.getFullYear();
-  </script>
+window.mostraOnshore = function(attiva) {
+  document.getElementById("zonaOnshore").style.display = attiva ? "flex" : "none";
+  document.getElementById("zonaOffshore").style.display = attiva ? "none" : "flex";
+  document.getElementById("alloggioOnshore").style.display = "none";
+  document.getElementById("vittoHotel").style.display = "none";
+};
+
+window.mostraAlloggio = function() {
+  document.getElementById("alloggioOnshore").style.display = "flex";
+};
+
+window.mostraVitto = function() {
+  document.getElementById("vittoHotel").style.display = "flex";
+};
+
+window.nascondiVitto = function() {
+  document.getElementById("vittoHotel").style.display = "none";
+};
+
+window.gestisciSceltaPresenza = function () {
+  const tipo = document.getElementById("tipoPresenza").value;
+  const rientro = document.getElementById("campoRientro").value;
+
+  const campoRientro = document.getElementById("campoRientro");
+  campoRientro.style.display = tipo === "Trasferta" ? "inline-block" : "none";
+
+  document.getElementById("opzioniComep").style.display = tipo === "Comep" ? "flex" : "none";
+  document.getElementById("opzioniEsterno").style.display = tipo === "Esterno" ? "flex" : "none";
+  document.getElementById("opzioniTrasferta").style.display = (tipo === "Trasferta" && rientro === "") ? "flex" : "none";
+  document.getElementById("campoDestinazione").style.display = tipo === "Trasferta" ? "flex" : "none";
+
+  if (tipo === "Trasferta" && rientro === "") {
+    document.getElementById("zonaOnshore").style.display = "none";
+    document.getElementById("zonaOffshore").style.display = "none";
+    document.getElementById("alloggioOnshore").style.display = "none";
+    document.getElementById("vittoHotel").style.display = "none";
+  }
+
+  if (tipo === "Trasferta" && rientro === "") {
+    document.getElementById("opzioniTrasferta").style.display = "flex";
+  } else {
+    document.getElementById("opzioniTrasferta").style.display = "none";
+  }
+};
+
+const giornoSelect = document.getElementById("giorno");
+const meseSelect = document.getElementById("mese");
+const annoSelect = document.getElementById("anno");
+
+for (let d = 1; d <= 31; d++) {
+  giornoSelect.innerHTML += `<option value="${String(d).padStart(2, '0')}">${d}</option>`;
+}
+
+const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+  "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+mesi.forEach((m, i) => {
+  meseSelect.innerHTML += `<option value="${String(i + 1).padStart(2, '0')}">${m}</option>`;
+});
+
+const annoCorrente = new Date().getFullYear();
+for (let y = annoCorrente - 5; y <= annoCorrente + 1; y++) {
+  annoSelect.innerHTML += `<option value="${y}">${y}</option>`;
+}
+
+const oggi = new Date();
+giornoSelect.value = String(oggi.getDate()).padStart(2, '0');
+meseSelect.value = String(oggi.getMonth() + 1).padStart(2, '0');
+annoSelect.value = oggi.getFullYear();
+</script>
 </body>
 </html>
 <!-- FINE FILE -->
