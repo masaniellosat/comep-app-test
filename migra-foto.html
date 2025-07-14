@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Migrazione con Compressione</title>
+</head>
+<body style="font-family: sans-serif; background: #111; color: #eee; padding: 20px;">
+  <h2>Migrazione immagini da base64 a Supabase Storage</h2>
+  <p id="output">Avvio in corso...</p>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabase = createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
+
+    const output = document.getElementById("output");
+
+    async function migraImmagini() {
+      output.textContent = "Recupero spese...";
+
+      const { data: spese, error } = await supabase
+        .from("spese")
+        .select("id, fotodataurl, nickname");
+
+      if (error) {
+        output.textContent = "Errore nel recupero spese.";
+        console.error(error);
+        return;
+      }
+
+      console.log("📦 Spese totali trovate:", spese.length);
+      let migrateCount = 0;
+
+      for (const spesa of spese) {
+        const { id, fotodataurl, nickname } = spesa;
+
+        if (!fotodataurl || !fotodataurl.startsWith("data:")) {
+          console.log("⏭️ Ignorata spesa:", id, "non contiene base64");
+          continue;
+        }
+
+        try {
+          const blobCompresso = await comprimiBase64(fotodataurl, 0.7);
+          const nomeFile = `${nickname || "utente"}_${Date.now()}.jpg`;
+
+          const { error: uploadError } = await supabase
+            .storage
+            .from("ricevute")
+            .upload(nomeFile, blobCompresso, {
+              contentType: "image/jpeg",
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error("❌ Errore upload per", id, uploadError);
+            continue;
+          }
+
+          const { data: publicUrlData } = supabase
+            .storage
+            .from("ricevute")
+            .getPublicUrl(nomeFile);
+
+          const { error: updateError } = await supabase
+            .from("spese")
+            .update({ fotodataurl: publicUrlData.publicUrl })
+            .eq("id", id);
+
+          if (updateError) {
+            console.error("❌ Errore update per", id, updateError);
+            continue;
+          }
+
+          migrateCount++;
+          console.log(`✅ Spesa ${id} migrata con successo`);
+        } catch (e) {
+          console.error("❌ Errore generale su", id, e);
+        }
+      }
+
+      output.textContent = `✅ Migrazione completata. Foto migrate: ${migrateCount}`;
+    }
+
+    function comprimiBase64(base64, quality = 0.7) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement("canvas");
+          const scale = Math.min(1, 800 / img.width); // Limita a 800px max
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(
+            (blob) => resolve(blob),
+            "image/jpeg",
+            quality
+          );
+        };
+        img.src = base64;
+      });
+    }
+
+    migraImmagini();
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rimborso Spese</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    #utente-nome {
+      font-size: 18px;
+      background-color: #000;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    .btn-container {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 260px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-blu {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-blu:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-rosso {
+      background-color: #cc0000;
+      color: white;
+    }
+
+    .btn-rosso:hover {
+      background-color: #990000;
+    }
+  </style>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const nickname = localStorage.getItem("nickname");
+
+      if (!nickname) {
+        alert("Utente non autenticato. Ritorno al login.");
+        window.location.href = "/index.html";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("utenti_richieste")
+        .select("*")
+        .eq("nickname", nickname)
+        .eq("approvato", true);
+
+      if (error || !data || data.length === 0) {
+        alert("Accesso non autorizzato. Torna alla pagina di login.");
+        localStorage.clear();
+        window.location.href = "/index.html";
+        return;
+      }
+
+      const utente = data[0];
+      const nomeUtente = `${utente.nome?.toUpperCase() || ""} ${utente.cognome?.toUpperCase() || ""}`;
+      document.getElementById("utente-nome").textContent = `Utente: ${nomeUtente}`;
+    });
+
+    window.tornaAllaHome = function () {
+      window.location.href = "/homepage.html";
+    };
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Gestione Rimborsi</h1>
+    <p id="utente-nome">Verifica in corso...</p>
+  </header>
+
+  <main>
+    <div class="btn-container">
+      <button class="btn btn-blu" onclick="window.location.href='./nuovo-progetto.html'">🆕 Nuovo Progetto</button>
+      <button class="btn btn-blu" onclick="window.location.href='./progetti-creati.html'">📂 Apri Progetto Esistente</button>
+      <button class="btn btn-rosso" onclick="tornaAllaHome()">🔙 Torna alla Home</button>
+    </div>
+  </main>
+</body>
+</html>

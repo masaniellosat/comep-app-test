@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrazione Utente</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #2c3e50, #4ca1af);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    form {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 40px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input {
+      width: 85%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+
+    button {
+      width: 85%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button[type="submit"] {
+      background-color: #28a745;
+      color: white;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #218838;
+    }
+
+    .btn-indietro {
+      background-color: #cc0000;
+      color: white;
+    }
+
+    .btn-indietro:hover {
+      background-color: #990000;
+    }
+
+    .error {
+      color: yellow;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Richiesta di Registrazione</h1>
+
+  <form id="formRegistrazione">
+    <input type="text" id="nome" placeholder="Nome" required />
+    <input type="text" id="cognome" placeholder="Cognome" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <input type="text" id="nickname" placeholder="Nickname" required />
+    <button type="submit">Registrati</button>
+    <button type="button" class="btn-indietro" onclick="window.location.href='index.html'">Torna indietro</button>
+    <div id="errore" class="error"></div>
+  </form>
+
+  <script src="/registrazione.js"></script>
+</body>
+</html>

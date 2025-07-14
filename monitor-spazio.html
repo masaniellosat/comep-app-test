@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monitoraggio Spazio Supabase</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      background: linear-gradient(to right, #2c2f4a, #58506a);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 40px;
+    }
+    #risultato {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      font-size: 22px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .sottotesto {
+      font-size: 18px;
+      color: #ccc;
+      margin-top: 10px;
+    }
+    .btn-torna {
+      margin-top: 40px;
+      padding: 12px 24px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Monitoraggio Spazio Supabase</h1>
+  <div id="risultato">Controllo in corso...</div>
+  <button class="btn-torna" onclick="window.location.href='homepage.html'">🔙 Torna alla Home</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseUrl = "https://orrnlfoqwivdlykajikp.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8";
+    const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const bucketName = "ricevute";
+    const pesoStimatoPerFile = 150 * 1024; // 150KB
+    const maxStorageBytes = 2 * 1024 * 1024 * 1024; // 2GB
+
+    async function stimaSpazio() {
+      const { data, error } = await client.storage.from(bucketName).list(null, { limit: 9999 });
+
+      if (error) {
+        document.getElementById("risultato").innerText = "Errore nel recupero dei file.";
+        console.error(error);
+        return;
+      }
+
+      const fileCount = data.length;
+      const stimaBytes = fileCount * pesoStimatoPerFile;
+      const stimaMB = (stimaBytes / (1024 * 1024)).toFixed(2);
+      const percentuale = ((stimaBytes / maxStorageBytes) * 100).toFixed(2);
+
+      document.getElementById("risultato").innerHTML = `
+        Spazio stimato: <strong>${stimaMB} MB</strong> (${percentuale}% di 2GB)
+        <div class="sottotesto">Numero di file rilevati: <strong>${fileCount}</strong><br>Stima basata su 150KB per file</div>
+      `;
+    }
+
+    stimaSpazio();
+  </script>
+</body>
+</html>

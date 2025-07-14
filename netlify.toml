@@ -1,0 +1,7 @@
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "script-src 'self' https://cdn.jsdelivr.net https://*.supabase.co 'unsafe-inline'; connect-src https://*.supabase.co;"
+
+    # Opzionale ma utile
+    Access-Control-Allow-Origin = "*"

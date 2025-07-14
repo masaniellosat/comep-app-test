@@ -1,0 +1,141 @@
+<!-- INIZIO FILE genera-pdf.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Genera PDF Progetto</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 40px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    .btn-home {
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 14px 26px;
+      font-size: 16px;
+      border-radius: 8px;
+      margin-top: 30px;
+      cursor: pointer;
+    }
+
+    .btn-home:hover {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generazione PDF Progetto</h1>
+  <div class="loader" id="loader"></div>
+  <div class="message" id="statusMessage">Sto generando il PDF, attendere...</div>
+  <button class="btn-home" onclick="window.location.href='homepage.html'">Torna alla homepage</button>
+  <script>
+    window.onload = async function () {
+      const supabaseUrl = "https://orrnlfoqwivdlykajikp.supabase.co";
+      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8";
+
+      const progettoId = new URLSearchParams(window.location.search).get("id");
+      const nickname = localStorage.getItem("nickname");
+
+      if (!progettoId || !nickname) {
+        alert("ID progetto o nickname mancante.");
+        location.href = "homepage.html";
+      }
+
+      const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+      try {
+        const { data: progetto, error: err1 } = await client
+          .from("progetti")
+          .select("*")
+          .eq("id", progettoId)
+          .eq("nickname", nickname)
+          .maybeSingle();
+
+        const { data: spese, error: err2 } = await client
+          .from("spese")
+          .select("*")
+          .eq("progetto", progettoId)
+          .eq("nickname", nickname)
+          .order("data", { ascending: true });
+
+        if (err1 || err2 || !progetto) throw new Error("Errore nel recupero dati.");
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text(`Progetto: ${progetto.nome || "Senza Nome"}`, 14, 20);
+        doc.setFontSize(12);
+        doc.text(`Descrizione: ${progetto.descrizione || ""}`, 14, 30);
+        doc.text(`Creato il: ${progetto.created_at?.split("T")[0] || ""}`, 14, 38);
+        doc.text(`Utente: ${nickname}`, 14, 46);
+
+        const body = spese.map(spesa => [
+          spesa.data || "",
+          `${spesa.importo?.toFixed(2)} €` || "",
+          spesa.categoria || "",
+          spesa.motivazione || "",
+          spesa.scontrinosmarrito ? "SI" : "NO"
+        ]);
+
+        doc.autoTable({
+          startY: 54,
+          head: [["Data", "Importo", "Categoria", "Motivazione", "Scontrino"]],
+          body: body,
+          styles: { fontSize: 10 },
+          alternateRowStyles: { fillColor: [240, 240, 240] },
+        });
+
+        for (const spesa of spese) {
+          if (spesa.fotodataurl) {
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.text(`Spesa del ${spesa.data} – ${spesa.importo} €`, 14, 20);
+            doc.addImage(spesa.fotodataurl, 'JPEG', 15, 30, 180, 120);
+          }
+        }
+
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("statusMessage").textContent = "Download in corso...";
+
+        doc.save(`Progetto_${progetto.nome || progettoId}.pdf`);
+      } catch (e) {
+        console.error(e);
+        alert("❌ Errore durante la generazione del PDF: " + e.message);
+        location.href = "homepage.html";
+      }
+    };
+  </script>
+</body>
+</html>
+<!-- FINE FILE genera-pdf.html -->

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vademecum</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      padding: 30px;
+      line-height: 1.7;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h2 {
+      margin-top: 30px;
+      color: #ffd700;
+    }
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 20px;
+    }
+    .sezione {
+      margin-bottom: 40px;
+    }
+    strong {
+      color: #ffffcc;
+    }
+    .back-button, .top-button {
+      background-color: #cc0000;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto 20px;
+      width: fit-content;
+    }
+    a {
+      color: #ffd700;
+    }
+  </style>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
+
+    async function verificaAccesso() {
+      const nickname = localStorage.getItem("nickname");
+      if (!nickname) {
+        alert("Accesso negato. Effettua il login.");
+        window.location.href = "/index.html";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("utenti_richieste")
+        .select("*");
+
+      if (error || !data) {
+        alert("Errore durante la verifica dell'utente.");
+        window.location.href = "/index.html";
+        return;
+      }
+
+      const utente = data.find(u =>
+        u.nickname && u.nickname.trim().toLowerCase() === nickname.trim().toLowerCase()
+      );
+
+      if (!utente || utente.approvato !== true) {
+        alert("Utente non autorizzato. Contatta l'amministratore.");
+        window.location.href = "/index.html";
+      }
+    }
+
+    window.onload = () => {
+      verificaAccesso();
+    };
+  </script>
+</head>
+<body>
+  <h1>📘 Vademecum Aziendale - Protocollo n. 3-2024</h1>
+  <button class="back-button" onclick="window.location.href='homepage.html'">🔙 Torna alla Home</button>
+  <div class="sezione">
+    <h2>1. Uso di Mezzi Aziendali e/o Attrezzatura</h2>
+    <ul>
+      <li>I mezzi aziendali e/o l’attrezzatura sono sotto la responsabilità di chi li usa e di chi li ritira.</li>
+      <li>Eventuali danni o smarrimenti devono essere prontamente segnalati.</li>
+      <li>Prima di usare un mezzo aziendale, controllare carrozzeria e livelli (acqua, olio, carburante, AD-BLUE).</li>
+      <li>Mezzi e attrezzature devono essere puliti prima della riconsegna.</li>
+      <li>Furgoni o auto a noleggio vanno sempre riconsegnati con il pieno (salvo diversa indicazione).</li>
+      <li>Vietato fumare nei furgoni aziendali e nelle auto a noleggio.</li>
+      <li>Parcheggiare sempre in luogo sicuro, anche a pagamento (ricevuta necessaria).</li>
+    </ul>
+  </div>
+  <div class="sezione">
+    <h2>2. Lavoro in Trasferta</h2>
+    <ul>
+      <li>Vietato pubblicare immagini di cantieri/attrezzature sui social durante la missione.</li>
+      <li>Responsabilità personale sull’attrezzatura portata:
+        <ol>
+          <li>Mai lasciare l’attrezzatura incustodita o nel mezzo parcheggiato.</li>
+          <li>Non affidarsi a guardiani occasionali.</li>
+          <li>Restituire l’attrezzatura subito al rientro, con verifica da parte del responsabile.</li>
+        </ol>
+      </li>
+      <li>È obbligatorio compilare e consegnare una <strong>Packing List</strong> al rientro.</li>
+    </ul>
+  </div>
+
+  <div class="sezione">
+    <h2>3. Rendicontazione Spese e Presenze</h2>
+    <ul>
+      <li>Richiesta acconto spese:
+        <ul>
+          <li>Comunicazione sul gruppo WhatsApp OPERATIVI COMEP.</li>
+          <li>Massimo €500 per richiesta, oltre solo previa autorizzazione.</li>
+        </ul>
+      </li>
+      <li><strong>Nota Spese</strong>:
+        <ul>
+          <li>Il POS non è valido, serve lo scontrino.</li>
+          <li>Foto scontrini chiare e leggibili.</li>
+          <li>Le spese rimborsabili:
+            <ol>
+              <li>Carburante</li>
+              <li>Parcheggi</li>
+              <li>Autostrade</li>
+              <li>Lavatrice (max 15€, missione ≥ 2 settimane, esclusa ultima settimana)</li>
+              <li>Materiali o attrezzature autorizzate via WhatsApp</li>
+              <li>Spese extra autorizzate via WhatsApp</li>
+            </ol>
+          </li>
+          <li>Taxi ammesso dalle 19:00 alle 10:00 o in casi eccezionali autorizzati:
+            <ul>
+              <li>Più di 2 valigie o materiale voluminoso</li>
+              <li>Partenza urgente</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>La nota spese va inviata a <strong>spese@comepsrl.tech</strong></li>
+      <li>Le date di invio sono:
+        <ul>
+          <li>16 di ogni mese</li>
+          <li>30 di ogni mese</li>
+          <li>Entro 48 ore dalla fine della missione</li>
+        </ul>
+      </li>
+      <li><strong>Le presenze</strong> vanno inviate entro il 31 o massimo il 1° del mese a <strong>presenze@comepsrl.tech</strong></li>
+    </ul>
+  </div>
+
+  <div class="sezione">
+    <h2>4. Pocket Money</h2>
+    <p>Distinzione delle missioni:</p>
+    <ul>
+      <li>Offshore Italia / Estero (nave o piattaforma)</li>
+      <li>Onshore Italia / Estero (lavoro a terra)</li>
+    </ul>
+    <p>Importi accreditati:</p>
+    <ul>
+      <li>€45,00/giorno in hotel all’estero</li>
+      <li>€40,00/giorno in hotel in Italia</li>
+      <li>€22,50 il giorno di rientro</li>
+      <li>€30,00/giorno in appartamento</li>
+    </ul>
+    <p><strong>Gli scontrini per i pasti non vanno più allegati.</strong></p>
+  </div>
+
+  <div class="sezione">
+    <h2>Regole Inderogabili</h2>
+    <ul>
+      <li>Comunicare SEMPRE eventuali problemi al responsabile. Nessuna giustificazione sarà accettata.</li>
+      <li><strong>È vietato l’uso di alcol o sostanze stupefacenti</strong> anche fuori dall’orario di lavoro.</li>
+    </ul>
+  </div>
+
+  <div class="sezione">
+    <h2>Nuovo Regolamento - Gestione Attrezzatura Aziendale</h2>
+    <ul>
+      <li>Alla partenza, chi riceve attrezzatura deve:
+        <ul>
+          <li>Segnalare a mezzo email: tipologia e numero di serie, data riconsegna/spostamento, stato e motivo, nome e missione del collega ricevente.</li>
+        </ul>
+      </li>
+      <li>Il collega ricevente deve confermare via email o segnalare discrepanze entro 24 ore.</li>
+      <li>Se la stessa attrezzatura viene nuovamente spostata, il nuovo destinatario dovrà inviare la medesima comunicazione.</li>
+      <li>Inviare tutto a:
+        <ul>
+          <li><a href="mailto:daniele.flaumene@comepsrl.tech">daniele.flaumene@comepsrl.tech</a></li>
+          <li><a href="mailto:vincenzo.imperatore@comepsrl.net">vincenzo.imperatore@comepsrl.net</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <button class="top-button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">🔝 Torna all'inizio</button>
+</body>
+</html>
+

@@ -1,0 +1,285 @@
+<!-- INIZIO FILE inserisci-spesa.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inserisci Spesa</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .form-container {
+      background-color: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: 0 auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      text-align: center;
+      margin: 15px auto 5px;
+    }
+
+    input, select, textarea, button, #fileLabel, #cameraBtn {
+      width: 85%;
+      padding: 12px;
+      margin: 5px auto 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      display: block;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    #scontrino-label {
+      margin-top: 30px;
+      margin-bottom: 0px;
+    }
+
+    #scontrino-label label {
+      font-weight: bold;
+      display: block;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    #scontrino-label input[type="checkbox"] {
+      display: block;
+      margin: 0 auto 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    #fileLabel, #cameraBtn {
+      margin-top: 20px;
+    }
+
+    .btn-comepst {
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-comepst:hover {
+      background-color: #218838;
+    }
+
+    .btn-azzurro {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn-azzurro:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-annulla {
+      background-color: #dc3545;
+    }
+
+    .btn-annulla:hover {
+      background-color: #b02a37;
+    }
+
+    #foto {
+      display: none;
+    }
+
+    #nome-utente {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Inserisci una Spesa</h1>
+  <div id="nome-utente">Caricamento utente...</div>
+
+  <div class="form-container">
+    <label for="data">Data</label>
+    <input type="date" id="data" required />
+
+    <label for="importo">Importo (€)</label>
+    <input type="number" id="importo" step="0.01" required />
+
+    <label for="categoria">Categoria</label>
+    <select id="categoria" required>
+      <option value="">-- Seleziona --</option>
+      <option value="Trasporti">Trasporti</option>
+      <option value="Taxi">Taxi</option>
+      <option value="Materiale">Materiale</option>
+      <option value="Attrezzi">Attrezzi</option>
+      <option value="Carburante">Carburante</option>
+    </select>
+
+    <label for="motivazione">Motivazione</label>
+    <textarea id="motivazione" rows="3"></textarea>
+
+    <div id="scontrino-label">
+      <label for="scontrinoSmarrito">Scontrino smarrito</label>
+      <input type="checkbox" id="scontrinoSmarrito" />
+    </div>
+
+    <label for="foto" id="fileLabel" class="btn-azzurro">📁 Carica dall'archivio</label>
+    <input type="file" id="foto" accept="image/*" />
+
+    <button id="cameraBtn" class="btn-azzurro">📷 Scatta foto</button>
+    <button id="salvaBtn" class="btn-comepst">💾 Salva Spesa</button>
+    <button class="btn-comepst btn-annulla" onclick="history.back()">Annulla</button>
+  </div>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabase = createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
+
+    const nickname = localStorage.getItem("nickname");
+    const urlParams = new URLSearchParams(window.location.search);
+    const progetto = urlParams.get("id");
+    const nomeUtente = document.getElementById("nome-utente");
+
+    if (!nickname || !progetto) {
+      alert("Errore: dati mancanti.");
+      window.location.href = "progetti-creati.html";
+    }
+
+    const { data: utente } = await supabase
+      .from("utenti_richieste")
+      .select("nome, cognome")
+      .eq("nickname", nickname)
+      .maybeSingle();
+
+    nomeUtente.textContent = utente
+      ? `Utente: ${utente.nome} ${utente.cognome}`
+      : `Utente: ${nickname}`;
+
+    let fileOriginale = null;
+    let fileCompresso = null;
+
+    document.getElementById("foto").addEventListener("change", async (e) => {
+      fileOriginale = e.target.files[0];
+      if (fileOriginale) {
+        fileCompresso = await comprimiImmagine(fileOriginale, 200 * 1024);
+      }
+    });
+
+    document.getElementById("cameraBtn").addEventListener("click", async () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+      input.style.display = "none";
+      document.body.appendChild(input);
+      input.click();
+      input.onchange = async () => {
+        fileOriginale = input.files[0];
+        if (fileOriginale) {
+          fileCompresso = await comprimiImmagine(fileOriginale, 200 * 1024);
+        }
+        document.body.removeChild(input);
+      };
+    });
+
+    document.getElementById("salvaBtn").addEventListener("click", async () => {
+      const data = document.getElementById("data").value;
+      const importo = parseFloat(document.getElementById("importo").value);
+      const categoria = document.getElementById("categoria").value;
+      const motivazione = document.getElementById("motivazione").value.trim();
+      const scontrinosmarrito = document.getElementById("scontrinoSmarrito").checked;
+
+      if (!data || isNaN(importo) || !categoria) {
+        alert("Compila tutti i campi obbligatori.");
+        return;
+      }
+
+      // ✅ Controllo: serve una foto oppure lo scontrino smarrito spuntato
+      if (!scontrinosmarrito && !fileCompresso) {
+        alert("Devi caricare una foto oppure spuntare 'Scontrino smarrito'.");
+        return;
+      }
+
+      let fotoUrl = null;
+
+      if (fileCompresso) {
+        const nomeFile = `${nickname}_${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase
+          .storage
+          .from("ricevute")
+          .upload(nomeFile, fileCompresso, {
+            contentType: "image/jpeg",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error("Errore upload immagine:", uploadError);
+          alert("Errore durante il caricamento dell'immagine.");
+          return;
+        }
+
+        const { data: publicUrlData } = supabase
+          .storage
+          .from("ricevute")
+          .getPublicUrl(nomeFile);
+
+        fotoUrl = publicUrlData.publicUrl;
+      }
+
+      const { error } = await supabase.from("spese").insert([{
+        progetto,
+        data,
+        importo,
+        categoria,
+        motivazione,
+        scontrinosmarrito,
+        fotodataurl: fotoUrl,
+        nickname
+      }]);
+
+      if (error) {
+        console.error("Errore salvataggio:", error);
+        alert("Errore durante il salvataggio.");
+      } else {
+        alert("Spesa salvata con successo.");
+        window.location.href = "progetti-creati.html";
+      }
+    });
+
+    async function comprimiImmagine(file, maxSize) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            const scale = Math.min(1, Math.sqrt(maxSize / file.size));
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.7);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
+<!-- FINE FILE inserisci-spesa.html -->

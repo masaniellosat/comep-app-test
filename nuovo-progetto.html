@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nuovo Progetto</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+    #utente-nome {
+      font-size: 18px;
+      color: white;
+      background-color: #333;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 30px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    label {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    input[type="text"] {
+      width: 260px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: #f0f0f0;
+      color: #000;
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 240px;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .btn-blu {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-blu:hover {
+      background-color: #0056b3;
+    }
+    .btn-rosso {
+      background-color: #cc0000;
+      color: white;
+    }
+    .btn-rosso:hover {
+      background-color: #990000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Nuovo Progetto</h1>
+  <p id="utente-nome"></p>
+
+  <form id="form-progetto">
+    <div>
+      <label for="nome">📜 Nome Progetto</label><br/>
+      <input type="text" id="nome" placeholder="Inserisci il nome" required />
+    </div>
+    <div>
+      <label for="codice">📌 Codice Missione</label><br/>
+      <input type="text" id="codice" placeholder="Inserisci il codice" required />
+    </div>
+    <div>
+      <label for="localita">📍 Località</label><br/>
+      <input type="text" id="localita" placeholder="Inserisci la località" required />
+    </div>
+    <button type="submit" class="btn btn-blu">➕ Crea Progetto</button>
+  </form>
+
+  <button id="btn-indietro" class="btn btn-rosso">🔙 Torna alla Homepage</button>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
+
+    document.getElementById("btn-indietro").addEventListener("click", () => {
+      window.location.href = "homepage.html";
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const nomeUtente = localStorage.getItem("nomeUtente") || "Anonimo";
+      document.getElementById("utente-nome").textContent = `Utente: ${nomeUtente}`;
+
+      document.getElementById("form-progetto").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const nome = document.getElementById("nome").value.trim();
+        const codice = document.getElementById("codice").value.trim();
+        const localita = document.getElementById("localita").value.trim();
+        const nickname = localStorage.getItem("nickname");
+
+        if (!nome || !codice || !localita || !nickname) {
+          alert("Compila tutti i campi e assicurati di essere loggato.");
+          return;
+        }
+
+        try {
+          // 1. Controllo se esiste già un progetto con stesso codice e stesso utente
+          const { data: esistenti, error: erroreQuery } = await supabase
+            .from("progetti")
+            .select("*")
+            .eq("codice", codice)
+            .eq("nickname", nickname);
+
+          if (erroreQuery) throw erroreQuery;
+          if (esistenti.length > 0) {
+            alert("Esiste già un progetto con questo codice missione.");
+            return;
+          }
+
+          // 2. Inserimento su Supabase
+          const { data, error } = await supabase
+            .from("progetti")
+            .insert([{ nome, codice, localita, datacreazione: new Date().toISOString(), nickname }])
+            .select();
+
+          if (error) throw error;
+
+          // 3. Redirect alla pagina progetti-creati.html
+          alert("Progetto creato con successo!");
+          window.location.href = "progetti-creati.html";
+        } catch (err) {
+          console.error("Errore durante la creazione:", err);
+          alert("Errore durante la creazione del progetto.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

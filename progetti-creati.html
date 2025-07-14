@@ -1,0 +1,186 @@
+<!-- INIZIO FILE progetti-creati.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Progetti Creati</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 { margin: 10px 0; }
+
+    #utente-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #utente-nome {
+      font-size: 18px;
+      background-color: #333;
+      padding: 6px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+
+    #btn-home {
+      background-color: #cc0000;
+      color: white;
+      padding: 10px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    li {
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 10px;
+      width: 60%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      font-size: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progetto-nome {
+      font-weight: bold;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .btn.esporta { background-color: #28a745; }
+    .btn.modifica { background-color: #007bff; }
+    .btn.aggiungi { background-color: #ff9800; }
+    .btn.elimina { background-color: #cc0000; }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.legacy.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1>Elenco Progetti</h1>
+  <div id="utente-container">
+    <p id="utente-nome">Caricamento utente...</p>
+    <button id="btn-home">🔙 Torna alla Homepage</button>
+  </div>
+  <ul id="lista-progetti"></ul>
+
+  <script>
+    const client = supabase.createClient(
+      'https://orrnlfoqwivdlykajikp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8'
+    );
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById("btn-home").addEventListener("click", () => {
+        window.location.href = "homepage.html";
+      });
+
+      const lista = document.getElementById("lista-progetti");
+      const nickname = localStorage.getItem("nickname");
+      if (!nickname) {
+        document.getElementById("utente-nome").textContent = "Utente non riconosciuto";
+        return;
+      }
+
+      const { data: utente } = await client
+        .from("utenti_richieste")
+        .select("nome, cognome")
+        .eq("nickname", nickname)
+        .maybeSingle();
+
+      document.getElementById("utente-nome").textContent =
+        utente ? `Utente: ${utente.nome} ${utente.cognome}` : `Utente: ${nickname}`;
+
+      const { data: progetti } = await client
+        .from("progetti")
+        .select("*")
+        .eq("nickname", nickname);
+
+      for (const progetto of progetti) {
+        const { data: spese } = await client
+          .from("spese")
+          .select("*")
+          .eq("progetto", progetto.id.toString())
+          .eq("nickname", nickname)
+          .order("data", { ascending: true });
+
+        const li = document.createElement("li");
+        const nome = document.createElement("div");
+        nome.className = "progetto-nome";
+        nome.textContent = `${progetto.nome} - ${progetto.codice || 'Senza codice'}`;
+
+        const btnContainer = document.createElement("div");
+        btnContainer.className = "btn-container";
+
+        const btnModifica = document.createElement("button");
+        btnModifica.textContent = "✏️ Modifica o Esporta Spese";
+        btnModifica.className = "btn modifica";
+        btnModifica.onclick = () => window.location.href = `modifica-progetto.html?id=${progetto.id}`;
+
+        const btnAggiungi = document.createElement("button");
+        btnAggiungi.textContent = "➕ Aggiungi Spesa";
+        btnAggiungi.className = "btn aggiungi";
+        btnAggiungi.onclick = () => window.location.href = `inserisci-spesa.html?id=${progetto.id}`;
+
+        const btnElimina = document.createElement("button");
+        btnElimina.textContent = "🗑️ Elimina";
+        btnElimina.className = "btn elimina";
+        btnElimina.onclick = async () => {
+          if (confirm("Vuoi davvero eliminare questo progetto?")) {
+            await client.from("progetti").delete().eq("id", progetto.id).eq("nickname", nickname);
+            location.reload();
+          }
+        };
+
+        btnContainer.append(btnModifica, btnAggiungi, btnElimina);
+        li.append(nome, btnContainer);
+        lista.appendChild(li);
+      }
+    });
+  </script>
+</body>
+</html>
+<!-- FINE FILE -->

@@ -1,0 +1,157 @@
+<!-- INIZIO FILE homepage.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComepApp - Home</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .welcome {
+      background-color: white;
+      color: black;
+      font-size: 24px;
+      font-weight: bold;
+      padding: 14px;
+      margin: 30px auto 40px;
+      max-width: 500px;
+      border-radius: 12px;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin: 0 auto;
+      max-width: 600px;
+    }
+
+    .btn, .btn-esci {
+      font-size: 18px;
+      height: 72px;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .btn-blu { background-color: #007bff; color: white; }
+    .btn-verde { background-color: #28a745; color: white; }
+    .btn-viola { background-color: #6f42c1; color: white; }
+    .btn-azzurro { background-color: #17a2b8; color: white; }
+    .btn-giallo { background-color: #ffc107; color: black; }
+    .btn-rosso { background-color: #dc3545; color: white; }
+
+    #btnMonitorSpazio {
+      margin: 40px auto 20px;
+      max-width: 600px;
+      width: 100%;
+      display: none;
+    }
+
+    .btn-esci {
+      background-color: black;
+      color: white;
+      margin: 20px auto 0;
+      max-width: 600px;
+    }
+
+    .btn-esci:hover {
+      background-color: #333;
+    }
+
+    footer {
+      margin-top: 60px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="welcome" id="welcomeBox">Caricamento...</div>
+
+  <div class="button-grid">
+    <button class="btn btn-blu" onclick="vaiASezione('rimborso')">💰 RIMBORSO SPESE</button>
+    <button class="btn btn-verde" onclick="vaiASezione('presenze')">📝 REGISTRAZIONE PRESENZE</button>
+    <button class="btn btn-viola" onclick="vaiALink('https://webmail.aruba.it')">✉️ MAIL AZIENDALE</button>
+    <button class="btn btn-azzurro" onclick="vaiALink('https://cloud.comepsrl.net')">☁️ CLOUD</button>
+    <button class="btn btn-giallo" onclick="vaiASezione('vademecum')">📒 VADEMECUM</button>
+    <button class="btn btn-rosso" onclick="vaiASezione('contatti-utili')">📞 CONTATTI UTILI</button>
+  </div>
+
+  <button id="btnMonitorSpazio" class="btn btn-azzurro">📊 MONITOR SPAZIO</button>
+  <button class="btn btn-esci" onclick="logout()">ESCI</button>
+
+  <footer>
+    - CREATED BY GIOVANNI CANTARELLI -
+  </footer>
+
+  <script>
+    const nickname = localStorage.getItem("nickname");
+    if (!nickname) {
+      alert("Utente non autorizzato. Contatta l'amministratore.");
+      window.location.href = "/index.html";
+    } else {
+      fetch(`https://orrnlfoqwivdlykajikp.supabase.co/rest/v1/utenti_richieste`, {
+        method: "GET",
+        headers: {
+          apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8",
+          Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8"
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const user = data.find(u => u.nickname && u.nickname.trim().toLowerCase() === nickname.trim().toLowerCase());
+        if (!user || !user.approvato) {
+          alert("Utente non autorizzato. Contatta l'amministratore.");
+          localStorage.removeItem("nickname");
+          window.location.href = "/index.html";
+        } else {
+          document.getElementById("welcomeBox").innerText = `${user.nome?.toUpperCase() || "BENVENUTO"} ${user.cognome?.toUpperCase() || ""}`;
+          if (user.ruolo === "admin") {
+            document.getElementById("btnMonitorSpazio").style.display = "block";
+          }
+        }
+      })
+      .catch(() => {
+        alert("Errore di accesso. Riprova.");
+        window.location.href = "/index.html";
+      });
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "/index.html";
+    }
+
+    function vaiASezione(nome) {
+      if (nome === "rimborso") window.location.href = "/rimborso.html";
+      if (nome === "presenze") window.location.href = "/presenze.html";
+      if (nome === "vademecum") window.location.href = "/vademecum.html";
+      if (nome === "contatti-utili") window.location.href = "/contatti-utili.html";
+    }
+
+    function vaiALink(link) {
+      window.open(link, '_blank');
+    }
+
+    document.getElementById("btnMonitorSpazio").addEventListener("click", () => {
+      window.location.href = "/monitor-spazio.html";
+    });
+  </script>
+</body>
+</html>
+<!-- FINE FILE homepage.html -->

@@ -1,0 +1,286 @@
+<!-- INIZIO FILE modifica-presenza.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modifica Presenza</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://orrnlfoqwivdlykajikp.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const nickname = localStorage.getItem("nickname");
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataParam = urlParams.get("data");
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!nickname || !dataParam) return;
+
+      const { data, error } = await supabase
+        .from("presenze")
+        .select("*")
+        .eq("nickname", nickname)
+        .eq("data", dataParam)
+        .single();
+
+      if (error || !data) {
+        alert("Nessuna presenza trovata per la data " + dataParam);
+        window.location.href = "log-presenze.html";
+        return;
+      }
+
+      const presenza = data;
+      document.getElementById("tipoPresenza").value = presenza.tipo;
+      gestisciSceltaPresenza();
+
+      if (presenza.tipo === "Comep") {
+        document.getElementById("badgeSpunta").checked = presenza.badge || false;
+        document.getElementById("noteComep").value = presenza.note || "";
+      }
+
+      if (presenza.tipo === "Esterno") {
+        document.getElementById("luogoEsterno").value = presenza.luogo || "";
+        document.getElementById("orarioInizio").value = presenza.orarioInizio || "";
+        document.getElementById("orarioFine").value = presenza.orarioFine || "";
+      }
+
+      if (presenza.tipo === "Trasferta") {
+        document.getElementById("destinazione").value = presenza.codiceMissione || "";
+        document.querySelector(`input[name="tipoTrasferta"][value="${presenza.trasfertaTipo}"]`)?.click();
+
+        if (presenza.trasfertaTipo === "Offshore") {
+          document.querySelector(`input[name="zonaOffshore"][value="${presenza.zona}"]`)?.checked = true;
+        } else if (presenza.trasfertaTipo === "Onshore") {
+          document.querySelector(`input[name="zonaOnshore"][value="${presenza.zona}"]`)?.click();
+          document.querySelector(`input[name="alloggio"][value="${presenza.alloggio}"]`)?.click();
+          if (presenza.alloggio === "Hotel" && presenza.vitto) {
+            document.querySelector(`input[name="vitto"][value="${presenza.vitto}"]`)?.checked = true;
+          }
+        }
+      }
+    });
+
+    window.salvaModifica = async () => {
+      const tipo = document.getElementById("tipoPresenza").value;
+      if (!tipo) return alert("Seleziona il tipo di presenza.");
+
+      const nuovaPresenza = {
+        data: dataParam,
+        nickname,
+        tipo
+      };
+
+      if (tipo === "Comep") {
+        nuovaPresenza.badge = document.getElementById("badgeSpunta").checked;
+        nuovaPresenza.note = document.getElementById("noteComep").value.trim();
+      }
+
+      if (tipo === "Esterno") {
+        nuovaPresenza.luogo = document.getElementById("luogoEsterno").value.trim();
+        nuovaPresenza.orarioInizio = document.getElementById("orarioInizio").value;
+        nuovaPresenza.orarioFine = document.getElementById("orarioFine").value;
+      }
+
+      if (tipo === "Trasferta") {
+        nuovaPresenza.codiceMissione = document.getElementById("destinazione").value.trim();
+        const tipoTrasferta = document.querySelector('input[name="tipoTrasferta"]:checked');
+        if (!tipoTrasferta) return alert("Seleziona tipo trasferta.");
+        nuovaPresenza.trasfertaTipo = tipoTrasferta.value;
+
+        if (tipoTrasferta.value === "Offshore") {
+          const zona = document.querySelector('input[name="zonaOffshore"]:checked');
+          if (!zona) return alert("Seleziona zona Offshore.");
+          nuovaPresenza.zona = zona.value;
+        } else {
+          const zona = document.querySelector('input[name="zonaOnshore"]:checked');
+          const alloggio = document.querySelector('input[name="alloggio"]:checked');
+          if (!zona || !alloggio) return alert("Completa zona e alloggio.");
+          nuovaPresenza.zona = zona.value;
+          nuovaPresenza.alloggio = alloggio.value;
+          if (alloggio.value === "Hotel") {
+            const vitto = document.querySelector('input[name="vitto"]:checked');
+            if (!vitto) return alert("Seleziona tipo di vitto.");
+            nuovaPresenza.vitto = vitto.value;
+          }
+        }
+      }
+
+      const { error } = await supabase
+        .from("presenze")
+        .upsert(nuovaPresenza, { onConflict: ['nickname', 'data'] });
+
+      if (error) {
+        console.error("Errore nel salvataggio:", error);
+        alert("Errore nel salvataggio della presenza.");
+      } else {
+        alert("Presenza modificata con successo!");
+        window.location.href = "log-presenze.html";
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .selezione-luogo {
+      margin-bottom: 20px;
+    }
+    select, input[type="text"], input[type="time"] {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #999;
+      width: 300px;
+      margin: 6px;
+    }
+    .opzioni-comep, .opzioni-esterno, .opzioni-trasferta,
+    .zona-onshore, .alloggio-onshore, .zona-offshore, #vittoHotel {
+      display: none;
+      margin-top: 15px;
+      gap: 10px;
+      flex-direction: column;
+      align-items: center;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+    .btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 220px;
+    }
+    .btn:hover {
+      background-color: #1e7e34;
+    }
+    .btn-rosso {
+      background-color: #cc0000;
+    }
+    .btn-rosso:hover {
+      background-color: #990000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Modifica Presenza</h1>
+
+  <div class="selezione-luogo">
+    <select id="tipoPresenza" onchange="gestisciSceltaPresenza()">
+      <option value="">-- Seleziona tipo di presenza --</option>
+      <option value="Comep">Comep</option>
+      <option value="Esterno">Esterno</option>
+      <option value="Trasferta">Trasferta</option>
+    </select>
+  </div>
+
+  <div class="opzioni-comep" id="opzioniComep">
+    <label><input type="checkbox" id="badgeSpunta" /> Ho marcato con badge</label>
+    <input type="text" id="noteComep" placeholder="Note opzionali..." />
+  </div>
+
+  <div class="opzioni-esterno" id="opzioniEsterno">
+    <input type="text" id="luogoEsterno" placeholder="Luogo di lavoro" />
+    <input type="time" id="orarioInizio" />
+    <input type="time" id="orarioFine" />
+  </div>
+
+  <div class="opzioni-trasferta" id="opzioniTrasferta">
+    <input type="text" id="destinazione" placeholder="Codice Missione" />
+    <div class="radio-group">
+      <label><input type="radio" name="tipoTrasferta" value="Offshore" onchange="mostraOnshore(false)"> Offshore</label>
+      <label><input type="radio" name="tipoTrasferta" value="Onshore" onchange="mostraOnshore(true)"> Onshore</label>
+    </div>
+
+    <div class="zona-offshore" id="zonaOffshore">
+      <div class="radio-group">
+        <label><input type="radio" name="zonaOffshore" value="Italia"> Italia</label>
+        <label><input type="radio" name="zonaOffshore" value="Estero"> Estero</label>
+      </div>
+    </div>
+
+    <div class="zona-onshore" id="zonaOnshore">
+      <div class="radio-group">
+        <label><input type="radio" name="zonaOnshore" value="Italia" onchange="mostraAlloggio()"> Italia</label>
+        <label><input type="radio" name="zonaOnshore" value="Estero" onchange="mostraAlloggio()"> Estero</label>
+      </div>
+    </div>
+
+    <div class="alloggio-onshore" id="alloggioOnshore">
+      <div class="radio-group">
+        <label><input type="radio" name="alloggio" value="Hotel" onchange="mostraVitto()"> Hotel</label>
+        <label><input type="radio" name="alloggio" value="Appartamento" onchange="nascondiVitto()"> Appartamento</label>
+      </div>
+    </div>
+
+    <div id="vittoHotel">
+      <div class="radio-group">
+        <label><input type="radio" name="vitto" value="No Vitto"> NO VITTO</label>
+        <label><input type="radio" name="vitto" value="1/2 Pensione"> 1/2 PENSIONE</label>
+        <label><input type="radio" name="vitto" value="Pensione Completa"> PENSIONE COMPLETA</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-container">
+    <button class="btn" onclick="salvaModifica()">💾 Salva Modifica</button>
+    <button class="btn btn-rosso" onclick="window.location.href='log-presenze.html'">🔙 Annulla</button>
+  </div>
+
+  <script>
+    function gestisciSceltaPresenza() {
+      const tipo = document.getElementById("tipoPresenza").value;
+      document.getElementById("opzioniComep").style.display = tipo === "Comep" ? "flex" : "none";
+      document.getElementById("opzioniEsterno").style.display = tipo === "Esterno" ? "flex" : "none";
+      document.getElementById("opzioniTrasferta").style.display = tipo === "Trasferta" ? "flex" : "none";
+      mostraOnshore(false);
+      document.getElementById("zonaOffshore").style.display = "none";
+    }
+
+    function mostraOnshore(attiva) {
+      document.getElementById("zonaOnshore").style.display = attiva ? "flex" : "none";
+      document.getElementById("zonaOffshore").style.display = attiva ? "none" : "flex";
+      document.getElementById("alloggioOnshore").style.display = "none";
+      document.getElementById("vittoHotel").style.display = "none";
+    }
+
+    function mostraAlloggio() {
+      document.getElementById("alloggioOnshore").style.display = "flex";
+    }
+
+    function mostraVitto() {
+      document.getElementById("vittoHotel").style.display = "flex";
+    }
+
+    function nascondiVitto() {
+      document.getElementById("vittoHotel").style.display = "none";
+      document.querySelectorAll('input[name="vitto"]').forEach(el => el.checked = false);
+    }
+  </script>
+</body>
+</html>
+<!-- FINE FILE modifica-presenza.html -->

@@ -1,0 +1,202 @@
+<!-- INIZIO FILE stampa-progetto.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stampa Progetto</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body {
+      background: white;
+      color: black;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      text-align: left;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    .intestazione {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .card {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: #f9f9f9;
+      box-sizing: border-box;
+      min-height: 180px;
+    }
+
+    .card-content {
+      flex: 1;
+    }
+
+    .card-content p {
+      margin: 4px 0;
+    }
+
+    .card img {
+      width: 180px;
+      max-height: 200px;
+      object-fit: contain;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+    }
+
+    .btn-stampa {
+      display: block;
+      background-color: #ffc107;
+      border: none;
+      color: black;
+      padding: 12px 24px;
+      font-size: 16px;
+      margin: 30px auto;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    @media print {
+      .btn-stampa {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="intestazione">
+    <h1 id="titolo-nome-cognome">Caricamento utente...</h1>
+    <div id="info-progetto">
+      <p><strong>Nome progetto:</strong> <span id="nome"></span></p>
+      <p><strong>Codice missione:</strong> <span id="codice"></span></p>
+      <p><strong>Località:</strong> <span id="localita"></span></p>
+    </div>
+  </div>
+
+  <h2>Spese Associate</h2>
+  <div id="lista-spese">
+    <p>Caricamento...</p>
+  </div>
+
+  <button class="btn-stampa" onclick="window.print()">Stampa o Salva in PDF</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://orrnlfoqwivdlykajikp.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8"
+    );
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+    const nickname = localStorage.getItem("nickname");
+
+    async function caricaUtente() {
+      const { data, error } = await supabase
+        .from("utenti_richieste")
+        .select("nome, cognome")
+        .eq("nickname", nickname)
+        .single();
+
+      if (!error && data) {
+        document.getElementById("titolo-nome-cognome").textContent =
+          data.nome + " " + data.cognome;
+      } else {
+        document.getElementById("titolo-nome-cognome").textContent =
+          "Nome utente non disponibile";
+      }
+    }
+
+    async function caricaProgetto() {
+      const { data, error } = await supabase
+        .from("progetti")
+        .select("*")
+        .eq("id", id)
+        .eq("nickname", nickname)
+        .single();
+
+      if (error || !data) {
+        alert("Errore nel caricamento progetto");
+        return;
+      }
+
+      document.getElementById("nome").textContent = data.nome;
+      document.getElementById("codice").textContent = data.codice;
+      document.getElementById("localita").textContent = data.localita;
+    }
+
+    async function caricaSpese() {
+      const contenitore = document.getElementById("lista-spese");
+
+      const { data, error } = await supabase
+        .from("spese")
+        .select("*")
+        .eq("progetto", id)
+        .eq("nickname", nickname)
+        .order("data", { ascending: true });
+
+      if (error || !data) {
+        contenitore.innerHTML = "<p>Errore nel caricamento delle spese.</p>";
+        return;
+      }
+
+      if (data.length === 0) {
+        contenitore.innerHTML = "<p>Nessuna spesa registrata.</p>";
+        return;
+      }
+
+      contenitore.innerHTML = "";
+
+      data.forEach(spesa => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const left = document.createElement("div");
+        left.className = "card-content";
+        left.innerHTML = `
+          <p><strong>Data:</strong> ${spesa.data}</p>
+          <p><strong>Importo:</strong> € ${spesa.importo}</p>
+          <p><strong>Categoria:</strong> ${spesa.categoria}</p>
+          <p><strong>Motivazione:</strong> ${spesa.motivazione || ""}</p>
+          <p><strong>Scontrino smarrito:</strong> ${spesa.scontrinosmarrito ? "Sì" : "No"}</p>
+        `;
+
+        card.appendChild(left);
+
+        if (spesa.fotodataurl) {
+          const img = document.createElement("img");
+          img.src = spesa.fotodataurl;
+          img.alt = "Scontrino";
+          card.appendChild(img);
+        }
+
+        contenitore.appendChild(card);
+      });
+    }
+
+    window.onload = () => {
+      if (!id || !nickname) {
+        alert("Parametro mancante.");
+        return;
+      }
+      caricaUtente();
+      caricaProgetto();
+      caricaSpese();
+    };
+  </script>
+</body>
+</html>
+<!-- FINE FILE -->
