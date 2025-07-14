@@ -16,19 +16,12 @@
       color: #333;
       margin-bottom: 30px;
     }
-    .card-selezioni {
+    .card-selezioni, .card-bottoni {
       background-color: #e0e0e0;
       padding: 20px;
       border-radius: 12px;
       max-width: 700px;
       margin: 0 auto 20px;
-    }
-    .card-bottoni {
-      background-color: #e0e0e0;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 700px;
-      margin: 0 auto;
     }
     .selezione-data, .selezione-luogo {
       display: flex;
@@ -37,25 +30,16 @@
       margin-bottom: 20px;
       flex-wrap: wrap;
     }
-    .selezione-data select {
+    .selezione-data select, #tipoPresenza, #campoRientro {
       padding: 10px;
       font-size: 16px;
       border-radius: 6px;
       border: 1px solid #999;
     }
-    #tipoPresenza {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #999;
+    #tipoPresenza, #campoRientro {
       width: 150px;
     }
-    select#campoRientro {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #999;
-      width: 150px;
+    #campoRientro {
       margin-left: 10px;
       display: none;
     }
@@ -147,6 +131,7 @@
         <input type="time" id="orarioFine" required />
       </div>
     </div>
+
     <div class="opzioni-trasferta" id="opzioniTrasferta">
       <div class="radio-group">
         <label><input type="radio" name="tipoTrasferta" value="Offshore" onchange="mostraOnshore(false)"> Offshore</label>
@@ -196,7 +181,7 @@
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
   const supabase = createClient(
     'https://xsmpddhjfcaekdzqwvsz.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
   );
 
   window.confermaPresenza = async function () {
@@ -212,12 +197,38 @@
 
     const presenza = { data, tipo: tipoPresenza, nickname, rientro };
 
-    if (tipoPresenza === "Trasferta" && rientro === "") {
-      document.getElementById("opzioniTrasferta").style.display = "flex";
-      document.getElementById("campoDestinazione").style.display = "flex";
-    } else {
-      document.getElementById("opzioniTrasferta").style.display = "none";
-      document.getElementById("campoDestinazione").style.display = "none";
+    if (tipoPresenza === "Comep") {
+      presenza.badge = document.getElementById("badgeSpunta").checked;
+      presenza.note = document.getElementById("noteComep").value.trim();
+    }
+
+    if (tipoPresenza === "Esterno") {
+      presenza.luogo = document.getElementById("luogoEsterno").value.trim();
+      presenza.orarioinizio = document.getElementById("orarioInizio").value;
+      presenza.orariofine = document.getElementById("orarioFine").value;
+    }
+
+    if (tipoPresenza === "Trasferta") {
+      presenza.codicemissione = document.getElementById("destinazione").value.trim();
+      const tipo = document.querySelector('input[name="tipoTrasferta"]:checked');
+      presenza.trasfertatipo = tipo?.value;
+
+      if (tipo?.value === "Offshore") {
+        const zona = document.querySelector('input[name="zonaOffshore"]:checked');
+        presenza.zona = zona?.value;
+      }
+
+      if (tipo?.value === "Onshore") {
+        const zona = document.querySelector('input[name="zonaOnshore"]:checked');
+        const alloggio = document.querySelector('input[name="alloggio"]:checked');
+        presenza.zona = zona?.value;
+        presenza.alloggio = alloggio?.value;
+
+        if (alloggio?.value === "Hotel") {
+          const vitto = document.querySelector('input[name="vitto"]:checked');
+          presenza.vitto = vitto?.value;
+        }
+      }
     }
 
     const { error } = await supabase.from("presenze").insert([presenza]);
@@ -258,8 +269,11 @@
     } else {
       campoRientro.style.display = "none";
     }
-    document.getElementById("opzioniTrasferta").style.display = (tipo === "Trasferta" && campoRientro.value === "") ? "flex" : "none";
-    document.getElementById("campoDestinazione").style.display = (tipo === "Trasferta" && campoRientro.value === "") ? "flex" : "none";
+
+    document.getElementById("opzioniComep").style.display = tipo === "Comep" ? "flex" : "none";
+    document.getElementById("opzioniEsterno").style.display = tipo === "Esterno" ? "flex" : "none";
+    document.getElementById("opzioniTrasferta").style.display = tipo === "Trasferta" ? "flex" : "none";
+    document.getElementById("campoDestinazione").style.display = tipo === "Trasferta" ? "flex" : "none";
   };
 
   const giornoSelect = document.getElementById("giorno");
