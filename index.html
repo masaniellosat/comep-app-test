@@ -1,157 +1,98 @@
+<!-- INIZIO FILE index.html -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Accesso ComepApp</title>
+  <title>ComepApp - Login</title>
   <link rel="stylesheet" href="/style.css" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
+      background: linear-gradient(to right, #3f3d56, #6c63ff);
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1f1c2c, #928dab);
       color: white;
+      text-align: center;
       padding: 40px;
-      text-align: center;
     }
 
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 30px;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
-
-    input, .btn {
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 300px;
-      text-align: center;
-      display: block;
+    h1 {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 20px;
     }
 
     input {
-      border: 1px solid #ccc;
-      background-color: white;
-      color: black;
+      font-size: 18px;
+      padding: 10px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin-bottom: 20px;
+      border: none;
+      text-align: center;
     }
 
-    .btn {
+    button {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 12px;
+      width: 80%;
+      max-width: 300px;
+      margin: 10px 0;
       border: none;
-      color: white;
       cursor: pointer;
     }
 
-    .btn-accedi {
-      background-color: #007bff;
-    }
-
-    .btn-accedi:hover {
-      background-color: #0056b3;
-    }
-
-    .btn-registrati {
-      background-color: #28a745;
-    }
-
-    .btn-registrati:hover {
-      background-color: #1e7e34;
-    }
-
     .btn-giallo {
-      background-color: #ffd700;
+      background-color: #ffcc00;
       color: black;
     }
 
     .btn-giallo:hover {
-      background-color: #e6c200;
+      background-color: #e6b800;
     }
 
     .btn-rosso {
       background-color: #cc0000;
+      color: white;
     }
 
     .btn-rosso:hover {
       background-color: #990000;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
-    #formLogin {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .errore {
+    .messaggio {
+      font-size: 14px;
       color: yellow;
-      font-size: 14px;
-      margin-top: 5px;
+      margin-top: 10px;
     }
 
-    .powered {
+    .footer {
       margin-top: 60px;
-      font-size: 14px;
-      color: white;
-      opacity: 0.8;
       font-style: italic;
+      font-size: 14px;
+      color: #ddd;
     }
   </style>
 </head>
 <body>
+
   <h1>Benvenuto su ComepApp</h1>
 
-  <div class="container">
-    <div id="sceltaAccesso">
-      <button class="btn btn-accedi" id="btnMostraLogin">ACCEDI</button>
-      <button class="btn btn-registrati" id="btnRegistrati">REGISTRATI</button>
-    </div>
+  <input type="text" id="nickname" placeholder="Inserisci il tuo nickname" />
 
-    <div id="formLogin" class="hidden">
-      <input type="text" id="nickname" placeholder="Inserisci il tuo nickname" />
-      <button class="btn btn-giallo" id="btnLogin">Entra</button>
-      <button class="btn btn-rosso" id="btnTorna">Torna indietro</button>
-      <div id="erroreLogin" class="errore"></div>
-    </div>
+  <button id="btnEntra" class="btn-giallo">Entra</button>
+  <button class="btn-rosso" onclick="window.location.href='registrazione.html'">Torna indietro</button>
+
+  <p id="messaggio" class="messaggio"></p>
+
+  <div class="footer">
+    - Powered by Giovanni Cantarelli -
   </div>
 
-  <div class="powered">- Powered by Giovanni Cantarelli -</div>
+  <script type="module" src="/index.js"></script>
 
-  <script>
-    const sceltaAccesso = document.getElementById('sceltaAccesso');
-    const formLogin = document.getElementById('formLogin');
-    const btnAccedi = document.getElementById('btnMostraLogin');
-    const btnRegistrati = document.getElementById('btnRegistrati');
-    const btnTorna = document.getElementById('btnTorna');
-
-    btnAccedi.addEventListener('click', () => {
-      sceltaAccesso.classList.add('hidden');
-      formLogin.classList.remove('hidden');
-    });
-
-    btnTorna.addEventListener('click', () => {
-      formLogin.classList.add('hidden');
-      sceltaAccesso.classList.remove('hidden');
-    });
-
-    btnRegistrati.addEventListener('click', () => {
-      window.location.href = 'registrazione.html';
-    });
-  </script>
-  <script src="/login.js"></script>
 </body>
 </html>
+<!-- FINE FILE index.html -->
