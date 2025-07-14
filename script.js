@@ -27,25 +27,40 @@
           return
         }
 
-        const { error } = await supabase
+        // Controllo esistenza codice missione
+        const { data: esistenti, error: erroreQuery } = await supabase
           .from('progetti')
-          .insert([{
-            nome,
-            codice,
-            localita,
-            nickname
-          }])
+          .select('id')
+          .eq('codice', codice)
+          .eq('nickname', nickname)
 
-        if (error) {
+        if (erroreQuery) {
+          alert('Errore nella verifica del codice.')
+          return
+        }
+
+        if (esistenti.length > 0) {
+          alert('Esiste già un progetto con questo codice missione.')
+          return
+        }
+
+        // Inserimento con recupero ID
+        const { data, error } = await supabase
+          .from('progetti')
+          .insert([{ nome, codice, localita, nickname }])
+          .select()
+
+        if (error || !data || data.length === 0) {
           console.error('Errore nel salvataggio:', error)
           alert('Errore nel salvataggio del progetto.')
           return
         }
 
-        // reindirizza
-        window.location.href = '/nuova-spesa.html'
+        const nuovoProgetto = data[0]
+
+        // Redirect con ID
+        window.location.href = `/nuova-spesa.html?id=${nuovoProgetto.id}`
       })
     }
   })
 </script>
-
