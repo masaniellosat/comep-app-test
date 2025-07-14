@@ -29,7 +29,8 @@ document.getElementById("formRegistrazione").addEventListener("submit", async fu
     email,
     password,
     nickname,
-    approvato: false
+    approvato: false,
+    ruolo: "user"
   };
 
   try {
