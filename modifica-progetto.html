@@ -35,16 +35,9 @@
     }
     .btn-verde { background-color: #28a745; color: white; }
     .btn-rosso { background-color: #dc3545; color: white; }
-    .btn-verde:hover, .btn-rosso:hover {
-      opacity: 0.9;
-    }
-    .btn-stampa {
-      background-color: #ffc107;
-      color: black;
-    }
-    .btn-stampa:hover {
-      opacity: 0.9;
-    }
+    .btn-verde:hover, .btn-rosso:hover { opacity: 0.9; }
+    .btn-stampa { background-color: #ffc107; color: black; }
+    .btn-stampa:hover { opacity: 0.9; }
     .pulsanti-riga {
       display: flex;
       justify-content: center;
@@ -132,8 +125,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabase = window.supabase.createClient(
-      "https://orrnlfoqwivdlykajikp.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8"
+      "https://xsmpddhjfcaekdzqwvsz.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4"
     );
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -161,9 +154,8 @@
       document.getElementById("codice").value = data.codice;
       document.getElementById("localita").value = data.localita;
 
-      // Aggiorna il titolo dinamico
-      const titolo = document.getElementById("titolo-progetto");
-      titolo.textContent = `Modifica Progetto – ${data.nome} – ${data.codice || "Senza codice"}`;
+      document.getElementById("titolo-progetto").textContent =
+        `Modifica Progetto – ${data.nome} – ${data.codice || "Senza codice"}`;
     }
 
     async function caricaSpese() {
@@ -271,7 +263,7 @@
         alert("Errore nel salvataggio.");
       } else {
         alert("Modifiche salvate.");
-        caricaProgetto(); // Aggiorna intestazione dopo salvataggio
+        caricaProgetto();
       }
     }
 
