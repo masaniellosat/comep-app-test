@@ -116,7 +116,7 @@
     </div>
 
     <div id="campoDestinazione">
-      <input type="text" id="destinazione" placeholder="Codice Missione" />
+      <input type="text" id="destinazione" placeholder="Codice Missione" oninput="controllaMissioneERientro()" />
     </div>
 
     <div class="opzioni-comep" id="opzioniComep">
@@ -168,7 +168,6 @@
       </div>
     </div>
   </div>
-
   <div class="card-bottoni">
     <div class="btn-container">
       <button class="btn" onclick="confermaPresenza()">✅ Conferma Presenza</button>
@@ -261,9 +260,18 @@
     document.getElementById("vittoHotel").style.display = "none";
   };
 
+  window.controllaMissioneERientro = function () {
+    const codiceMissione = document.getElementById("destinazione").value.trim();
+    const rientro = document.getElementById("campoRientro").value;
+    const mostraOpzioni = (codiceMissione !== "" && rientro !== "Rientro");
+
+    document.getElementById("opzioniTrasferta").style.display = mostraOpzioni ? "flex" : "none";
+  };
+
   window.gestisciSceltaPresenza = function () {
     const tipo = document.getElementById("tipoPresenza").value;
     const campoRientro = document.getElementById("campoRientro");
+
     if (tipo === "Trasferta") {
       campoRientro.style.display = "inline-block";
     } else {
@@ -272,8 +280,9 @@
 
     document.getElementById("opzioniComep").style.display = tipo === "Comep" ? "flex" : "none";
     document.getElementById("opzioniEsterno").style.display = tipo === "Esterno" ? "flex" : "none";
-    document.getElementById("opzioniTrasferta").style.display = tipo === "Trasferta" ? "flex" : "none";
     document.getElementById("campoDestinazione").style.display = tipo === "Trasferta" ? "flex" : "none";
+
+    controllaMissioneERientro();
   };
 
   const giornoSelect = document.getElementById("giorno");
