@@ -1,43 +1,59 @@
-// index.js - Script completo per login
+document.getElementById("formRegistrazione").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  const nome = document.getElementById("nome").value.trim();
+  const cognome = document.getElementById("cognome").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const nickname = document.getElementById("nickname").value.trim().toLowerCase();
+  const errore = document.getElementById("errore");
 
-// Connessione al tuo nuovo ambiente di test Supabase
-const supabase = createClient(
-  'https://xsmpddhjfcaekdzqwvsz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4'
-);
-
-document.getElementById("btnEntra").addEventListener("click", async () => {
-  const nickname = document.getElementById("nickname").value.trim();
-  const messaggio = document.getElementById("messaggio");
-
-  if (!nickname) {
-    messaggio.textContent = "Inserisci un nickname.";
+  if (!nome || !cognome || !email || !password || !nickname) {
+    errore.textContent = "Tutti i campi sono obbligatori.";
     return;
   }
 
-  messaggio.textContent = "Verifica in corso...";
-
-  const { data, error } = await supabase
-    .from('utenti_richieste')
-    .select('*')
-    .eq('nickname', nickname)
-    .eq('approvato', true);
-
-  if (error) {
-    console.error('Errore Supabase:', error);
-    messaggio.textContent = "Errore durante la verifica. Riprova.";
+  if (!email.includes("@")) {
+    errore.textContent = "Inserisci un'email valida.";
     return;
   }
 
-  if (!data || data.length === 0) {
-    messaggio.textContent = "Utente non registrato o non approvato.";
+  if (password.length < 6) {
+    errore.textContent = "La password deve contenere almeno 6 caratteri.";
     return;
   }
 
-  // Utente trovato e approvato
-  localStorage.setItem("nickname", nickname);
-  messaggio.textContent = "";
-  window.location.href = "homepage.html";
+  const data = {
+    nome,
+    cognome,
+    email,
+    password,
+    nickname,
+    approvato: false,
+    ruolo: "utente" // nuovo campo ruolo
+  };
+
+  try {
+    const response = await fetch("https://xsmpddhjfcaekdzqwvsz.supabase.co/rest/v1/utenti_richieste", {
+      method: "POST",
+      headers: {
+        apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4",
+        Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4",
+        "Content-Type": "application/json",
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error("Errore durante l'invio della richiesta.");
+    }
+
+    alert("Registrazione inviata con successo!");
+    document.getElementById("formRegistrazione").reset();
+    errore.textContent = "";
+  } catch (err) {
+    errore.textContent = "Errore durante l'invio. Riprova.";
+    console.error(err);
+  }
 });
