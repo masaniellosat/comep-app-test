@@ -12,12 +12,10 @@
       padding: 20px;
       text-align: center;
     }
-
     h1 {
       color: #333;
       margin-bottom: 30px;
     }
-
     .sezione {
       background-color: #fff;
       padding: 15px;
@@ -28,39 +26,32 @@
       margin-left: auto;
       margin-right: auto;
     }
-
     .sezione h2 {
       color: #007bff;
       margin-bottom: 10px;
       text-align: center;
     }
-
     .contatto {
       margin-bottom: 10px;
       padding: 5px 0;
       border-bottom: 1px solid #ddd;
       text-align: center;
     }
-
     .contatto:last-child {
       border-bottom: none;
     }
-
     .nome {
       font-weight: bold;
     }
-
     .email {
       display: block;
       color: #0056b3;
       text-decoration: none;
       margin: 2px 0;
     }
-
     .telefono {
       color: #333;
     }
-
     .btn-torna {
       margin-top: 30px;
       background-color: #cc0000;
@@ -71,7 +62,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
     .btn-torna:hover {
       background-color: #990000;
     }
@@ -80,8 +70,8 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    const supabaseUrl = 'https://orrnlfoqwivdlykajikp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycm5sZm9xd2l2ZGx5a2FqaWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzIwNzksImV4cCI6MjA2NzM0ODA3OX0.Xp8MB-hbBmGoYtTrq9W-J64ERpe-FWF6lM01BvmEvu8';
+    const supabaseUrl = 'https://xsmpddhjfcaekdzqwvsz.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzbXBkZGhqZmNhZWtkenF3dnN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzg1MjgsImV4cCI6MjA2ODA1NDUyOH0.yDflCx21WMPnNDn2dO5dbFa7zFRTLoxDrP1L5Qwl3S4';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     async function verificaAccesso() {
@@ -111,62 +101,3 @@
 </head>
 <body>
   <h1>Contatti Utili</h1>
-
-  <div class="sezione">
-    <h2>REPARTO TECNICO-OPERATIVO</h2>
-    <div class="contatto">
-      <div class="nome">Giovanni Cantarelli</div>
-      <a href="mailto:giovanni.cantarelli@comepsrl.net" class="email">giovanni.cantarelli@comepsrl.net</a>
-      <div class="telefono">+393200582107</div>
-    </div>
-    <div class="contatto">
-      <div class="nome">Alessandro Pili</div>
-      <a href="mailto:alessandro.pili@comepsrl.net" class="email">alessandro.pili@comepsrl.net</a>
-      <div class="telefono">+393420999728</div>
-    </div>
-  </div>
-
-  <div class="sezione">
-    <h2>AMMINISTRAZIONE</h2>
-    <div class="contatto">
-      <div class="nome">Margherita Attavanti</div>
-      <a href="mailto:margherita.attavanti@comepsrl.net" class="email">margherita.attavanti@comepsrl.net</a>
-      <div class="telefono">+393488963483</div>
-    </div>
-    <div class="contatto">
-      <div class="nome">Vincenzo Imperatore</div>
-      <a href="mailto:vincenzo.imperatore@comepsrl.net" class="email">vincenzo.imperatore@comepsrl.net</a>
-      <div class="telefono">+393317892016</div>
-    </div>
-  </div>
-
-  <div class="sezione">
-    <h2>GESTIONE FORMAZIONE DEL PERSONALE</h2>
-    <div class="contatto">
-      <div class="nome">Anna Parisi</div>
-      <a href="mailto:anna.parisi@comepsrl.net" class="email">anna.parisi@comepsrl.net</a>
-      <div class="telefono">+393423464548</div>
-    </div>
-  </div>
-
-  <div class="sezione">
-    <h2>UFFICIO COMMERCIALE</h2>
-    <div class="contatto">
-      <div class="nome">Alessandra Daniele</div>
-      <a href="mailto:alessandra.daniele@comepsrl.net" class="email">alessandra.daniele@comepsrl.net</a>
-      <div class="telefono">+393498897063</div>
-    </div>
-  </div>
-
-  <div class="sezione">
-    <h2>MAGAZZINO</h2>
-    <div class="contatto">
-      <div class="nome">Daniele Flaumene</div>
-      <a href="mailto:daniele.flaumene@comepsrl.tech" class="email">daniele.flaumene@comepsrl.tech</a>
-      <div class="telefono">+393425183430</div>
-    </div>
-  </div>
-
-  <button class="btn-torna" onclick="window.location.href='homepage.html'">🔙 Torna alla Homepage</button>
-</body>
-</html>
